@@ -86,7 +86,7 @@ class TestContactFormat(unittest.TestCase):
 
     def test_format_nonmatching_onename(self):
         fmt = nd.ContactFormat('fullname', 'color', 'zip', 'phone_space')
-        self.assertTrue(fmt.matches('TedLorts, Indigo, 48098, 248 505 1216'))
+        self.assertFalse(fmt.matches('TedLorts, Indigo, 48098, 248 505 1216'))
 
 
 
