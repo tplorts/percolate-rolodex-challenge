@@ -54,7 +54,7 @@ class TestExtractionFunctions(unittest.TestCase):
 
 
 
-class TestContactFormat(unittest.TestCase):
+class TestContactFormatBasics(unittest.TestCase):
 
     def test_format_exp_construction(self):
         self.assertEqual(
@@ -87,6 +87,64 @@ class TestContactFormat(unittest.TestCase):
     def test_format_nonmatching_onename(self):
         fmt = nd.ContactFormat('fullname', 'color', 'zip', 'phone_space')
         self.assertFalse(fmt.matches('TedLorts, Indigo, 48098, 248 505 1216'))
+
+    def test_format_nonmatching_colorpunct(self):
+        fmt = nd.ContactFormat('fullname', 'color', 'zip', 'phone_space')
+        self.assertFalse(fmt.matches('Ted Lorts, Ind-igo, 48098, 248 505 1216'))
+
+    def test_format_nonmatching_bigzip(self):
+        fmt = nd.ContactFormat('fullname', 'color', 'zip', 'phone_space')
+        self.assertFalse(fmt.matches('Ted Lorts, Indigo, 4809800, 248 505 1216'))
+
+    def test_format_nonmatching_smallzip(self):
+        fmt = nd.ContactFormat('fullname', 'color', 'zip', 'phone_space')
+        self.assertFalse(fmt.matches('Ted Lorts, Indigo, 4809, 248 505 1216'))
+
+    def test_format_nonmatching_bigphone(self):
+        fmt = nd.ContactFormat('fullname', 'color', 'zip', 'phone_space')
+        self.assertFalse(fmt.matches('Ted Lorts, Indigo, 48098, 248 505 12161'))
+
+    def test_format_nonmatching_smallphone(self):
+        fmt = nd.ContactFormat('fullname', 'color', 'zip', 'phone_space')
+        self.assertFalse(fmt.matches('Ted Lorts, Indigo, 48098, 248 505 121'))
+
+
+
+class TestContactNormalization(unittest.TestCase):
+
+    def test_object_format_basic_format0(self):
+        fmt = nd.ContactFormat('lastname', 'firstname', 'phone_dash', 'color', 'zip')
+        self.assertEqual(
+            fmt.objectify('Lorts, Ted, (248)-505-1216, Indigo, 48098'),
+            {'firstname': 'Ted', 
+             'lastname': 'Lorts', 
+             'color': 'Indigo', 
+             'zipcode': '48098', 
+             'phonenumber': '248-505-1216'}
+        )
+
+    def test_object_format_basic_format1(self):
+        fmt = nd.ContactFormat('fullname', 'color', 'zip', 'phone_space')
+        self.assertEqual(
+            fmt.objectify('Ted Lorts, Indigo, 48098, 248 505 1216'),
+            {'firstname': 'Ted', 
+             'lastname': 'Lorts', 
+             'color': 'Indigo', 
+             'zipcode': '48098', 
+             'phonenumber': '248-505-1216'}
+        )
+
+    def test_object_format_basic_format2(self):
+        fmt = nd.ContactFormat('firstname', 'lastname', 'zip', 'phone_space', 'color')
+        self.assertEqual(
+            fmt.objectify('Ted, Lorts, 48098, 248 505 1216, Indigo'),
+            {'firstname': 'Ted', 
+             'lastname': 'Lorts', 
+             'color': 'Indigo', 
+             'zipcode': '48098', 
+             'phonenumber': '248-505-1216'}
+        )
+
 
 
 
