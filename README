@@ -1,0 +1,6 @@
+
+To run (data will be read from 'data.in'):
+python normalize_data.py
+
+To test:
+python -m unittest tests
