@@ -19,10 +19,10 @@ from operator import itemgetter
 # (with whitespace already trimmed off), and returns an object mapping
 # key(s) to normalized value(s)
 def extract_fullname(name):
-    names = name.rsplit(' ', 1)
+    names = re.split(r'\s+', name, re.UNICODE)
     return {
-        'firstname': names[0].rstrip(),
-        'lastname': names[1].lstrip()
+        'firstname': ' '.join(names[:-1]),
+        'lastname': names[-1]
     }
 
 def extract_phone_space(phone):
@@ -85,7 +85,7 @@ class ContactFormat(object):
         exp = r'^\s*' + exp + r'\s*$'
 
         # Prepare the regex object
-        self.regex = re.compile(exp)
+        self.regex = re.compile(exp, re.UNICODE)
 
     def matches(self, contact_string):
         """whether contact_string fits this format"""
