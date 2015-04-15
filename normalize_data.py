@@ -18,7 +18,13 @@ from operator import itemgetter
 # Each one of these takes the original form of a single field of data
 # (with whitespace already trimmed off), and returns an object mapping
 # key(s) to normalized value(s)
+
 def extract_fullname(name):
+    """
+    Split a full name (firstname lastname) into its two (first & last)
+    parts. Condenses any groups of varied whitespace into a single
+    space.  Allows for multiple names in the firstname.
+    """
     names = re.split(r'\s+', name, re.UNICODE)
     return {
         'firstname': ' '.join(names[:-1]),
