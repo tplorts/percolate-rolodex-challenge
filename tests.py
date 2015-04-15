@@ -55,8 +55,38 @@ class TestExtractionFunctions(unittest.TestCase):
 
 
 class TestContactFormat(unittest.TestCase):
-    pass
-    # def test_
+
+    def test_format_exp_construction(self):
+        self.assertEqual(
+            nd.ContactFormat('firstname', 'lastname', 'zip').format_exp,
+            '{firstname}{comma}{lastname}{comma}{zip}'
+        )
+
+    def test_regex_construction(self):
+        self.assertEqual(
+            nd.ContactFormat('firstname', 'lastname', 'zip').regex.pattern,
+            r'^\s*[\w \.\-]+\s*,\s*[\w\-]+\s*,\s*\d{5}\s*$'
+        )
+
+    def test_format_matching_basic(self):
+        fmt = nd.ContactFormat('fullname', 'color', 'zip', 'phone_space')
+        self.assertTrue(fmt.matches('Ted Lorts, Indigo, 48098, 248 505 1216'))
+
+    def test_format_matching_nospace(self):
+        fmt = nd.ContactFormat('fullname', 'color', 'zip', 'phone_space')
+        self.assertTrue(fmt.matches('Ted Lorts,Indigo,48098,248 505 1216'))
+
+    def test_format_matching_extraspace(self):
+        fmt = nd.ContactFormat('fullname', 'color', 'zip', 'phone_space')
+        self.assertTrue(fmt.matches('Ted Lorts\t, \tIndigo  ,48098, \t\t248 505 1216'))
+
+    def test_format_matching_lotsonames(self):
+        fmt = nd.ContactFormat('fullname', 'color', 'zip', 'phone_space')
+        self.assertTrue(fmt.matches('J. R. R. Tolkien, Gold, 99999, 999 999 9999'))
+
+    def test_format_nonmatching_onename(self):
+        fmt = nd.ContactFormat('fullname', 'color', 'zip', 'phone_space')
+        self.assertTrue(fmt.matches('TedLorts, Indigo, 48098, 248 505 1216'))
 
 
 

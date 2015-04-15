@@ -55,9 +55,9 @@ PARTIAL_EXPRESSIONS = {
     # Whitespace around commas should be treated as valid
     'comma': r'\s*,\s*',
     'zip': r'\d{5}',
-    'firstname': r'[\w .\-]+',
+    'firstname': r'[\w \.\-]+',
     'lastname': r'[\w\-]+',
-    'fullname': r'[\w .\-]+ [\w\-]+',
+    'fullname': r'[\w \.\-]+ [\w\-]+',
     'phone_dash': r'\(\d{3}\)-\d{3}-\d{4}',
     'phone_space': r'\d{3}\s*\d{3}\s*\d{4}',
     'color': r'[\w ]+',
@@ -82,10 +82,10 @@ class ContactFormat(object):
 
         # Make a pre-regex string of the form:
         # {lastname}{comma}{firstname}{comma}{etc}
-        exp = '{' + '}{comma}{'.join(self.field_names) + '}'
+        self.format_exp = '{' + '}{comma}{'.join(self.field_names) + '}'
 
         # Pull in the actually regex strings
-        exp = exp.format(**PARTIAL_EXPRESSIONS)
+        exp = self.format_exp.format(**PARTIAL_EXPRESSIONS)
 
         # Allow for leading & trailing whitespace on each line
         exp = r'^\s*' + exp + r'\s*$'
