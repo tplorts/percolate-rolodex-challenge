@@ -112,7 +112,7 @@ class TestContactFormatBasics(unittest.TestCase):
 
 class TestContactNormalization(unittest.TestCase):
 
-    def test_object_format_basic_format0(self):
+    def test_objectify_basic_format0(self):
         fmt = nd.ContactFormat('lastname', 'firstname', 'phone_dash', 'color', 'zip')
         self.assertEqual(
             fmt.objectify('Lorts, Ted, (248)-505-1216, Indigo, 48098'),
@@ -123,7 +123,7 @@ class TestContactNormalization(unittest.TestCase):
              'phonenumber': '248-505-1216'}
         )
 
-    def test_object_format_basic_format1(self):
+    def test_objectify_basic_format1(self):
         fmt = nd.ContactFormat('fullname', 'color', 'zip', 'phone_space')
         self.assertEqual(
             fmt.objectify('Ted Lorts, Indigo, 48098, 248 505 1216'),
@@ -134,7 +134,7 @@ class TestContactNormalization(unittest.TestCase):
              'phonenumber': '248-505-1216'}
         )
 
-    def test_object_format_basic_format2(self):
+    def test_objectify_basic_format2(self):
         fmt = nd.ContactFormat('firstname', 'lastname', 'zip', 'phone_space', 'color')
         self.assertEqual(
             fmt.objectify('Ted, Lorts, 48098, 248 505 1216, Indigo'),
