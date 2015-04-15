@@ -127,25 +127,28 @@ VALID_FORMATS = (
 if __name__ == '__main__':
     entries = []
     errors = []
-    line_number = 0
 
     with open('data.in', 'r') as input_file:
+        line_number = 0
         for line in input_file:
-            found_match = False
+            # Ignore blank lines
+            if len(line.strip()) > 0:
+                found_match = False
 
-            # Check each of the supported formats
-            for fmt in VALID_FORMATS:
-                if fmt.matches(line):
-                    # save the normalized form of this entry
-                    entries.append(fmt.objectify(line))
-                    # So that this line is not considered erroneous
-                    found_match = True
-                    # No need to check other formats
-                    break
+                # Check each of the supported formats
+                for fmt in VALID_FORMATS:
+                    if fmt.matches(line):
+                        # save the normalized form of this entry
+                        entries.append(fmt.objectify(line))
+                        # So that this line is not considered erroneous
+                        found_match = True
+                        # No need to check other formats
+                        break
 
-            # if the line matches none of the supported formats
-            if not found_match:
-                errors.append(line_number)
+                # if the line matches none of the supported formats
+                if not found_match:
+                    errors.append(line_number)
+
             line_number = line_number + 1
 
     # Sort (in-place) by lastname, then by firstname
