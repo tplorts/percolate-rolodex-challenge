@@ -1,43 +1,50 @@
-"""hey"""
+"""
+Contact data normalizer
+Ted Lorts
+2015 April 14
+
+Takes contact data conglomerated in various formats, and
+saves a copy of the data in a uniform format.
+"""
+
 from __future__ import unicode_literals
 import re
 import json
+from operator import itemgetter
 
 
-def jsonify(data):
-    return json.dumps(data, sort_keys=True, indent=2, separators=(',', ': '))
+####
+# Extraction & Normalization functions
+# Each one of these takes the original form of a single field of data
+# (with whitespace already trimmed off), and returns an object mapping
+# key(s) to normalized value(s)
+def extract_fullname(name):
+    names = name.rsplit(' ', 1)
+    return {
+        'firstname': names[0].rstrip(),
+        'lastname': names[1].lstrip()
+    }
+
+def extract_phone_space(phone):
+    phone = ''.join(phone.split())
+    return {'phonenumber': phone[0:3]+'-'+phone[3:6]+'-'+phone[6:]}
+
+EXTRACTION_FUNCTIONS = {
+    'zip': lambda s: {'zipcode': s},
+    'color': lambda s: {'color': s},
+    'firstname': lambda s: {'firstname': s},
+    'lastname': lambda s: {'lastname': s},
+    'phone_dash': lambda s: {'phonenumber': s[1:4] + s[5:]},
+    'fullname': extract_fullname,
+    'phone_space': extract_phone_space,
+}
 
 
-class ExtractionFunctions:
-    def zip(self, s):
-        return {'zipcode': s}
-
-    def firstname(self, s):
-        return {'firstname': s}
-
-    def lastname(self, s):
-        return {'lastname': s}
-
-    def fullname(self, s):
-        names = s.rsplit(' ', 1)
-        return {
-            'firstname': names[0].rstrip(),
-            'lastname': names[1].lstrip()
-        }
-
-    def phone_dash(self, s):
-        return {'phonenumber': s[1:4] + s[5:]}
-
-    def phone_space(self, s):
-        s = ''.join(s.split())
-        return {'phonenumber': s[0:3]+'-'+s[3:6]+'-'+s[6:]}
-
-    def color(self, s):
-        return {'color': s}
-
-extraction_functions = ExtractionFunctions()
-
-
+####
+# Partial Regular Expressions
+# Regular expressions that can be chained together to form various
+# contact entry format regexs. Each valid form of a field has its
+# own key and regex.
 PARTIAL_EXPRESSIONS = {
     # Whitespace around commas should be treated as valid
     'comma': r'\s*,\s*',
@@ -50,7 +57,18 @@ PARTIAL_EXPRESSIONS = {
     'color': r'[\w ]+',
 }
 
-class ContactFormat():
+
+
+
+
+class ContactFormat(object):
+    """
+    Represents a format of a contact entry
+    Create by passing in a list of field names in the order they will
+    appear on each line of this particular format.  The field names
+    should be one of the keys in PARTIAL_EXPRESSIONS (but not 'comma').
+    """
+
     def __init__(self, *args):
         # Save this because it's used for both the regular expression
         # and the parsing functions
@@ -69,18 +87,28 @@ class ContactFormat():
         # Prepare the regex object
         self.regex = re.compile(exp)
 
-    def match(self, contact_string):
-        return self.regex.match(contact_string)
+    def matches(self, contact_string):
+        """whether contact_string fits this format"""
+        return self.regex.match(contact_string) != None
 
     def objectify(self, contact_string):
+        """
+        Transforms contact_string into an object with values separated
+        and normalized
+        """
         values = contact_string.split(',')
 
         obj = {}
+        # This loop assumes that self.field_names and values
+        # will have equal lengths, since we only use objectify
+        # after checking that the string matches this format.
         for i in range(len(self.field_names)):
-            extractor = getattr(extraction_functions, self.field_names[i])
+            extractor = EXTRACTION_FUNCTIONS[self.field_names[i]]
             obj.update(extractor(values[i].strip()))
 
         return obj
+
+
 
 
 VALID_FORMATS = (
@@ -93,19 +121,34 @@ VALID_FORMATS = (
 if __name__ == '__main__':
     entries = []
     errors = []
-    f = open('data.in', 'r')
     line_number = 0
-    for line in f:
-        found_match = False
-        for fmt in VALID_FORMATS:
-            if fmt.match(line):
-                found_match = True
-                entries.append(fmt.objectify(line))
-                break
-        if not found_match:
-            errors.append(line_number)
-        line_number = line_number + 1
-    print jsonify({
+
+    with open('data.in', 'r') as input_file:
+        for line in input_file:
+            found_match = False
+
+            # Check each of the supported formats
+            for fmt in VALID_FORMATS:
+                if fmt.matches(line):
+                    # save the normalized form of this entry
+                    entries.append(fmt.objectify(line))
+                    # So that this line is not considered erroneous
+                    found_match = True
+                    # No need to check other formats
+                    break
+
+            # if the line matches none of the supported formats
+            if not found_match:
+                errors.append(line_number)
+            line_number = line_number + 1
+
+    # Sort (in-place) by lastname, then by firstname
+    entries.sort(key=itemgetter('lastname', 'firstname'))
+    output_object = {
         'entries': entries,
         'errors': errors
-    })
+    }
+
+    with open('result.out', 'w') as output_file:
+        json.dump(output_object, output_file, indent=2,
+                  separators=(',', ': '), sort_keys=True)
